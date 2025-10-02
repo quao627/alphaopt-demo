@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
 import ProblemSelector from './components/ProblemSelector';
+import LibraryVisualization from './components/LibraryVisualization';
 import './App.css';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -9,6 +10,7 @@ function App() {
   const [selectedProblem, setSelectedProblem] = useState(null);
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('chat'); // 'chat' or 'library'
 
   // Fetch problems from API on mount
   useEffect(() => {
@@ -44,25 +46,47 @@ function App() {
           <span className="logo-icon">α</span>
           <span className="logo-text">AlphaOPT</span>
         </div>
-        {selectedProblem && (
-          <button className="new-chat-btn" onClick={handleNewChat}>
-            New Chat
-          </button>
-        )}
+        
+        <div className="header-controls">
+          <div className="view-toggle">
+            <button 
+              className={`toggle-btn ${viewMode === 'chat' ? 'active' : ''}`}
+              onClick={() => setViewMode('chat')}
+            >
+              💬 Chat
+            </button>
+            <button 
+              className={`toggle-btn ${viewMode === 'library' ? 'active' : ''}`}
+              onClick={() => setViewMode('library')}
+            >
+              📚 Library
+            </button>
+          </div>
+          
+          {selectedProblem && viewMode === 'chat' && (
+            <button className="new-chat-btn" onClick={handleNewChat}>
+              New Chat
+            </button>
+          )}
+        </div>
       </header>
 
       <main className="app-main">
-        {!selectedProblem ? (
-          <ProblemSelector 
-            problems={problems}
-            loading={loading}
-            onSelect={handleSelectProblem}
-          />
+        {viewMode === 'library' ? (
+          <LibraryVisualization />
         ) : (
-          <ChatInterface 
-            initialProblem={selectedProblem}
-            onNewChat={handleNewChat}
-          />
+          !selectedProblem ? (
+            <ProblemSelector 
+              problems={problems}
+              loading={loading}
+              onSelect={handleSelectProblem}
+            />
+          ) : (
+            <ChatInterface 
+              initialProblem={selectedProblem}
+              onNewChat={handleNewChat}
+            />
+          )
         )}
       </main>
     </div>

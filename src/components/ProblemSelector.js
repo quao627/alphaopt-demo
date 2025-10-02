@@ -20,8 +20,7 @@ function ProblemSelector({ problems, loading, onSelect }) {
       <div className="selector-header">
         <h1 className="selector-title">Welcome to AlphaOPT</h1>
         <p className="selector-subtitle">
-          Describe your optimization problem in natural language, and we'll generate the mathematical formulation, 
-          Python code, and optimal solution.
+          Describe your optimization problem in natural language to get the solution.
         </p>
       </div>
 
@@ -34,7 +33,7 @@ function ProblemSelector({ problems, loading, onSelect }) {
               placeholder="Type your optimization problem here... For example: 'I need to minimize the cost of shipping products from 3 warehouses to 5 stores...'"
               value={customInput}
               onChange={(e) => setCustomInput(e.target.value)}
-              rows={6}
+              rows={4}
             />
             <button 
               type="submit" 

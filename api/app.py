@@ -64,11 +64,6 @@ SAMPLE_PROBLEMS = [
         "title": "Portfolio Optimization",
         "description": "An investor wants to allocate funds across 5 different stocks to maximize expected return while keeping risk below a certain threshold. Each stock has different expected returns and volatility. What is the optimal portfolio allocation?"
     },
-    {
-        "id": 4,
-        "title": "Staff Scheduling",
-        "description": "A call center needs to schedule staff for a 24-hour period. Different time slots require different minimum numbers of staff. Each employee works 8-hour shifts. What is the minimum number of employees needed and how should their shifts be scheduled?"
-    }
 ]
 
 @app.get("/api/problems", response_model=List[Problem], tags=["Problems"])

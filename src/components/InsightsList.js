@@ -18,10 +18,18 @@ function InsightsList({ insights }) {
   // Handle wheel event to scroll horizontally
   const handleWheel = (e) => {
     if (scrollContainerRef.current) {
-      // Prevent default vertical scroll
-      e.preventDefault();
-      // Scroll horizontally instead
-      scrollContainerRef.current.scrollLeft += e.deltaY;
+      const container = scrollContainerRef.current;
+      const hasHorizontalScroll = container.scrollWidth > container.clientWidth;
+      
+      // Only prevent vertical scroll if there's horizontal content to scroll
+      if (hasHorizontalScroll) {
+        // Prevent default vertical scroll and stop propagation to parent
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Scroll horizontally instead
+        container.scrollLeft += e.deltaY;
+      }
     }
   };
 
@@ -33,7 +41,7 @@ function InsightsList({ insights }) {
         ref={scrollContainerRef}
         onWheel={handleWheel}
       >
-        <div className="insights-list">
+        <div className="insights-list-problem">
           {sortedInsights.map((insight, index) => (
             <InsightBox key={index} insight={insight} />
           ))}

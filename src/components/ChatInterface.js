@@ -13,13 +13,14 @@ function ChatInterface({ initialProblem }) {
   const messagesEndRef = useRef(null);
   const initialMessageSent = useRef(false);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-  };
+  // Auto-scroll removed - users can manually scroll to view content
+  // const scrollToBottom = () => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+  // };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   useEffect(() => {
     if (initialProblem && !initialMessageSent.current) {

@@ -18,21 +18,21 @@
 
 .selector-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
 }
 
 .selector-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
 }
 
 .selector-subtitle {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   color: #6b6b6b;
-  line-height: 1.6;
+  line-height: 1.5;
   max-width: 700px;
   margin: 0 auto;
   font-weight: 400;
@@ -41,13 +41,15 @@
 .selector-content {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .custom-input-section {
   background: white;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   border: 1px solid #f0f0f0;
 }
 
@@ -55,7 +57,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: #999;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -114,7 +116,7 @@
 .divider {
   position: relative;
   text-align: center;
-  margin: 1rem 0;
+  margin: 0.5rem 0;
 }
 
 .divider::before {
@@ -146,12 +148,12 @@
   background: white;
   border: 1px solid #f0f0f0;
   border-radius: 12px;
-  padding: 1.75rem;
+  padding: 1.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .problem-card:hover {

@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 2rem;
-  padding-top: 0.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .insights-header {
@@ -22,6 +22,8 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: #d0d0d0 transparent;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: none;
 }
 
 .insights-scroll-container::-webkit-scrollbar {
@@ -42,8 +44,9 @@
   background: #a0a0a0;
 }
 
-.insights-list {
+.insights-list-problem {
   display: flex;
+  flex-direction: row;
   gap: 1rem;
   padding-bottom: 0.5rem;
   min-width: min-content;
@@ -51,10 +54,16 @@
 
 /* Remove gradient fade to avoid covering borders */
 
+/* Force horizontal layout for chat insights; override any global .insights-list */
+.insights-section .insights-list {
+  flex-direction: row !important;
+  flex-wrap: nowrap;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .insights-section {
-    margin-bottom: 1.5rem;
+    padding-bottom: 2rem;
   }
 
   .insights-list {
