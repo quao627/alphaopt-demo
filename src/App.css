@@ -24,6 +24,12 @@
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-xl);
   color: var(--color-text-primary);
+  cursor: pointer;
+  transition: opacity var(--transition-base);
+}
+
+.logo:hover {
+  opacity: 0.8;
 }
 
 .logo-icon {

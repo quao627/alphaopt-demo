@@ -39,10 +39,15 @@ function App() {
     setSelectedProblem(null);
   };
 
+  const handleLogoClick = () => {
+    setSelectedProblem(null);
+    setViewMode('chat');
+  };
+
   return (
     <div className="app">
       <header className="app-header">
-        <div className="logo">
+        <div className="logo" onClick={handleLogoClick}>
           <span className="logo-icon">α</span>
           <span className="logo-text">AlphaOPT</span>
         </div>
