@@ -3,7 +3,7 @@ import Message from './Message';
 import './ChatInterface.css';
 
 // Use environment variable if set, otherwise use localhost:5000 for development
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://4d61dc14.cpolar.io';
 
 function ChatInterface({ initialProblem }) {
   const [messages, setMessages] = useState([]);
@@ -30,22 +30,163 @@ function ChatInterface({ initialProblem }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialProblem]);
 
-  const callSolverAPI = async (userMessage) => {
+  // Transform taxonomy from nested object to readable string
+  const transformTaxonomy = (taxonomy) => {
+    if (typeof taxonomy === 'string') return taxonomy;
+    
+    // Flatten nested taxonomy structure to a readable path
+    const flattenTaxonomy = (obj, path = []) => {
+      for (const [key, value] of Object.entries(obj)) {
+        if (typeof value === 'object' && !Array.isArray(value)) {
+          return flattenTaxonomy(value, [...path, key]);
+        } else if (Array.isArray(value)) {
+          return [...path, key, ...value].slice(1).join(' > ');
+        }
+      }
+      return path.slice(1).join(' > ');
+    };
+    
+    return flattenTaxonomy(taxonomy);
+  };
+
+  const loadDefaultAnswer = async (problemId, onProgress) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/solve`, {
+      const response = await fetch('/default_answers.json');
+      const defaultAnswers = await response.json();
+      
+      const answer = defaultAnswers[problemId.toString()];
+      if (!answer) {
+        throw new Error('No default answer found for this problem');
+      }
+
+      const result = {
+        insights: null,
+        formulation: null,
+        code: null,
+        solution: null,
+        source: 'default'
+      };
+
+      // Step 1: Show insights after 3 seconds
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Transform insights to match frontend format (same as API transformation)
+      const transformedInsights = answer.insights.map(insight => ({
+        ...insight,
+        category: insight.category.toLowerCase(), // Convert to lowercase for color mapping
+        taxonomy: transformTaxonomy(insight.taxonomy) // Flatten nested taxonomy to string
+      }));
+      result.insights = transformedInsights;
+      onProgress({ ...result });
+
+      // Step 2: Show formulation after another 3 seconds
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      result.formulation = answer.formulation;
+      onProgress({ ...result });
+
+      // Step 3: Show code after another 3 seconds
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      result.code = answer.code;
+      onProgress({ ...result });
+
+      // Step 4: Show solution after another 3 seconds
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      result.solution = answer.solution;
+      onProgress({ ...result });
+
+      return result;
+    } catch (error) {
+      console.error('Error loading default answer:', error);
+      throw error;
+    }
+  };
+
+  const callSolverAPI = async (userMessage, onProgress, isRegenerate = false) => {
+    try {
+      const result = {
+        insights: null,
+        formulation: null,
+        code: null,
+        solution: null,
+        source: 'api'
+      };
+
+      // Step 1: Get insights
+      const insightsResponse = await fetch(`${API_BASE_URL}/api/solve/insights`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ problem: userMessage }),
+        body: JSON.stringify({ problem: userMessage, regenerate: isRegenerate }),
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+      if (!insightsResponse.ok) {
+        throw new Error(`API error: ${insightsResponse.status}`);
       }
 
-      const data = await response.json();
-      return data;
+      const insightsData = await insightsResponse.json();
+      
+      // Transform insights to match frontend format
+      const transformedInsights = insightsData.insights.map(insight => ({
+        ...insight,
+        category: insight.category.toLowerCase(), // Convert to lowercase for color mapping
+        taxonomy: transformTaxonomy(insight.taxonomy) // Flatten nested taxonomy to string
+      }));
+      
+      result.insights = transformedInsights;
+      onProgress({ ...result });
+
+      // Step 2: Get formulation
+      const formulationResponse = await fetch(`${API_BASE_URL}/api/solve/formulation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ problem: userMessage, regenerate: isRegenerate }),
+      });
+
+      if (!formulationResponse.ok) {
+        throw new Error(`API error: ${formulationResponse.status}`);
+      }
+
+      const formulationData = await formulationResponse.json();
+      result.formulation = formulationData.formulation;
+      onProgress({ ...result });
+
+      // Step 3: Get code
+      const codeResponse = await fetch(`${API_BASE_URL}/api/solve/code`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ problem: userMessage, regenerate: isRegenerate }),
+      });
+
+      if (!codeResponse.ok) {
+        throw new Error(`API error: ${codeResponse.status}`);
+      }
+
+      const codeData = await codeResponse.json();
+      result.code = codeData.code;
+      onProgress({ ...result });
+
+      // Step 4: Get solution
+      const solutionResponse = await fetch(`${API_BASE_URL}/api/solve/solution`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ problem: userMessage, regenerate: isRegenerate }),
+      });
+
+      if (!solutionResponse.ok) {
+        throw new Error(`API error: ${solutionResponse.status}`);
+      }
+
+      const solutionData = await solutionResponse.json();
+      result.solution = solutionData.solution;
+      onProgress({ ...result });
+
+      return result;
     } catch (error) {
       console.error('Error calling solver API:', error);
       throw error;
@@ -70,37 +211,64 @@ function ChatInterface({ initialProblem }) {
     setInput('');
     setIsLoading(true);
 
-    try {
-      const response = await callSolverAPI(textToSend);
-      
-      const assistantMessage = {
-        id: Date.now() + 1,
-        type: 'assistant',
-        content: response,
-        timestamp: new Date()
-      };
+    // Create initial assistant message with loading state
+    const assistantMessageId = Date.now() + 1;
+    const assistantMessage = {
+      id: assistantMessageId,
+      type: 'assistant',
+      content: {
+        insights: null,
+        formulation: null,
+        code: null,
+        solution: null
+      },
+      timestamp: new Date()
+    };
 
-      setMessages(prev => [...prev, assistantMessage]);
+    setMessages(prev => [...prev, assistantMessage]);
+
+    try {
+      // Check if this is the Salesman Routing problem (id: 1) and use default answer
+      if (initialProblem && initialProblem.id === 1) {
+        await loadDefaultAnswer(initialProblem.id, (progressData) => {
+          // Update the assistant message with progressive data
+          setMessages(prev => prev.map(msg => 
+            msg.id === assistantMessageId
+              ? { ...msg, content: progressData }
+              : msg
+          ));
+        });
+      } else {
+        await callSolverAPI(textToSend, (progressData) => {
+          // Update the assistant message with progressive data
+          setMessages(prev => prev.map(msg => 
+            msg.id === assistantMessageId
+              ? { ...msg, content: progressData }
+              : msg
+          ));
+        }, false);
+      }
     } catch (error) {
       console.error('Error:', error);
       // Show error message to user
-      const errorMessage = {
-        id: Date.now() + 1,
-        type: 'assistant',
-        content: {
-          insights: [],
-          formulation: 'Error',
-          code: '',
-          solution: {
-            status: 'Error',
-            variables: {},
-            objective: '',
-            details: 'Failed to connect to the solver API. Please make sure the backend server is running.'
-          }
-        },
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId
+          ? {
+              ...msg,
+              content: {
+                insights: [],
+                formulation: 'Error',
+                code: '',
+                solution: {
+                  status: 'Error',
+                  variables: {},
+                  objective: '',
+                  details: 'Failed to connect to the solver API. Please make sure the backend server is running.'
+                }
+              }
+            }
+          : msg
+      ));
     } finally {
       setIsLoading(false);
     }
@@ -111,37 +279,64 @@ function ChatInterface({ initialProblem }) {
     setMessages(prev => prev.slice(0, -1));
     setIsLoading(true);
 
-    try {
-      const response = await callSolverAPI(originalQuestion);
-      
-      const assistantMessage = {
-        id: Date.now(),
-        type: 'assistant',
-        content: response,
-        timestamp: new Date()
-      };
+    // Create initial assistant message with loading state
+    const assistantMessageId = Date.now();
+    const assistantMessage = {
+      id: assistantMessageId,
+      type: 'assistant',
+      content: {
+        insights: null,
+        formulation: null,
+        code: null,
+        solution: null
+      },
+      timestamp: new Date()
+    };
 
-      setMessages(prev => [...prev, assistantMessage]);
+    setMessages(prev => [...prev, assistantMessage]);
+
+    try {
+      // Check if this is the Salesman Routing problem (id: 1) and use default answer
+      if (initialProblem && initialProblem.id === 1) {
+        await loadDefaultAnswer(initialProblem.id, (progressData) => {
+          // Update the assistant message with progressive data
+          setMessages(prev => prev.map(msg => 
+            msg.id === assistantMessageId
+              ? { ...msg, content: progressData }
+              : msg
+          ));
+        });
+      } else {
+        await callSolverAPI(originalQuestion, (progressData) => {
+          // Update the assistant message with progressive data
+          setMessages(prev => prev.map(msg => 
+            msg.id === assistantMessageId
+              ? { ...msg, content: progressData }
+              : msg
+          ));
+        }, true);
+      }
     } catch (error) {
       console.error('Error:', error);
       // Show error message to user
-      const errorMessage = {
-        id: Date.now(),
-        type: 'assistant',
-        content: {
-          insights: [],
-          formulation: 'Error',
-          code: '',
-          solution: {
-            status: 'Error',
-            variables: {},
-            objective: '',
-            details: 'Failed to connect to the solver API. Please make sure the backend server is running.'
-          }
-        },
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => prev.map(msg => 
+        msg.id === assistantMessageId
+          ? {
+              ...msg,
+              content: {
+                insights: [],
+                formulation: 'Error',
+                code: '',
+                solution: {
+                  status: 'Error',
+                  variables: {},
+                  objective: '',
+                  details: 'Failed to connect to the solver API. Please make sure the backend server is running.'
+                }
+              }
+            }
+          : msg
+      ));
     } finally {
       setIsLoading(false);
     }
@@ -170,7 +365,7 @@ function ChatInterface({ initialProblem }) {
           <Message key={message.id} message={message} />
         ))}
         
-        {isLoading && (
+        {/* {isLoading && (
           <div className="loading-message" role="status" aria-label="Loading response">
             <div className="loading-avatar" aria-hidden="true">α</div>
             <div className="loading-content">
@@ -182,7 +377,7 @@ function ChatInterface({ initialProblem }) {
               <p className="loading-text">Analyzing problem and generating solution...</p>
             </div>
           </div>
-        )}
+        )} */}
         
         <div ref={messagesEndRef} />
       </div>

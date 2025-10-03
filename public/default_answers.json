@@ -1,0 +1,115 @@
+{
+    "1": {
+        "insights": [
+            {
+                "category": "Formulation",
+                "taxonomy": {
+                    "General Formulation": {
+                        "Variable Definition": [
+                            "Continuous vs. Discrete Confusion"
+                        ]
+                    }
+                },
+                "condition": "This insight applies when decision quantities in the problem must be expressed as whole numbers due to their indivisible nature, such as 'batches', 'discrete items', or 'whole numbers'. For example, when the problem statement mentions 'units of product' or 'batches of items'. This insight does NOT apply when decision variables represent divisible quantities or processes, such as 'servings', 'rates', or 'flows'.",
+                "explanation": "When the problem involves decision variables representing integer quantities, the best practice is to define these variables as integer types. A common mistake is to define them as continuous variables, which happens because of overlooking the indivisible nature of the quantities. More generally, this reflects that proper variable definition must align with the intrinsic nature of the decision quantities being modeled.",
+                "example": "# Wrong: Continuous variables\nx_i ≥ 0\n\n# Correct: Integer variables\nx_i ∈ \\mathbb{Z}^+, ∀i ∈ P\n\n# Wrong: Continuous variables\nx1 = model.addVar(vtype=GRB.CONTINUOUS, name=\"Chicken\")\n\n# Correct: Integer variables\nx1 = model.addVar(vtype=GRB.INTEGER, name=\"Chicken\")"
+            },
+            {
+                "category": "Formulation",
+                "taxonomy": {
+                    "General Formulation": {
+                        "Variable Definition": [
+                            "Continuous vs. Discrete Confusion"
+                        ]
+                    }
+                },
+                "condition": "This insight applies when decision quantities in the problem represent indivisible counts or choices versus divisible amounts such as flows. This insight applies when decision quantities are best represented as indivisible counts or discrete choices rather than divisible amounts. This insight does NOT apply when decision quantities can naturally be expressed as continuous variables without the need for discretization, like in optimizing nutrition or cost with food items purchasable in fractions.",
+                "explanation": "When the problem involves purchasing items in discrete units, such as servings of food, the best practice is to use integer decision variables. A common mistake is to use continuous variables for such quantities, which happens because the decision maker might assume divisibility without considering that items are naturally counted in whole units. More generally, this reflects that modeling discrete choices or counts requires integer variables to ensure solutions are interpretable and feasible in real-world terms.",
+                "example": "# Wrong\nx_i: continuous variable representing amount of food i\n\n# Correct\nx[f]: integer variable representing units of food f"
+            },
+            {
+                "category": "Formulation",
+                "taxonomy": {
+                    "General Formulation": {
+                        "Variable Definition": [
+                            "Continuous vs. Discrete Confusion"
+                        ]
+                    }
+                },
+                "condition": "This insight applies when decision quantities in the problem represent indivisible counts or choices versus divisible amounts such as flows. For example, when the problem statement mentioned acres of land or the number of batches of bagels and croissants, which are typically divisible quantities, the failed mathematical model incorrectly defined them as integer variables.\nThis insight applies when decision quantities are inherently divisible and relate to resource constraints like time or capacities, which can be represented as continuous variables. For example, when the problem statement involves maximizing profits based on resource constraints like oven hours or pastry chef hours.\nThis insight does NOT apply when decision quantities represent indivisible units of production or items, such as batches of bagels and croissants, which must be produced or utilized in whole numbers.",
+                "explanation": "When the problem involves decision variables that are conceptually continuous, the best practice is to define them as continuous variables. A common mistake is defining them as integer variables, which happens because of an incorrect assumption that the decisions must be indivisible. More generally, this reflects that continuous quantities should be modeled with continuous variables unless explicitly required to be discrete.",
+                "example": "# Wrong: x, y ∈ ℤ\n# Correct: x, y ∈ ℝ\n\n# Wrong\nx_B = number of batches of bagels, x_B ∈ ℤ⁺\n\n# Correct\nx = model.addVar(name='Bagels')"
+            },
+            {
+                "category": "Domain",
+                "taxonomy": {
+                    "Domain Modeling": {
+                        "Routing": [
+                            "Subtour Elimination Constraints"
+                        ]
+                    }
+                },
+                "condition": "This insight applies when the problem description allows decision variables to form disconnected cycles that must be eliminated. For example, when the problem statement mentioned the requirement to visit each city exactly once and return to the starting city, ensuring there are no subtours is critical. This insight applies when the problem requires forming a single tour that visits each location exactly once and returns to the starting point, with potential for disconnected cycles needing elimination. This insight does NOT apply when the problem does not require visiting each node exactly once or returning to the starting point in a single tour.",
+                "explanation": "When the problem involves routing with potential for disconnected cycles, the best practice is to include effective subtour elimination constraints to ensure a single complete tour. A common mistake is omitting or incorrectly formulating these constraints, which happens because the model may allow solutions that consist of multiple disconnected loops. More generally, this reflects that subtour elimination constraints are essential in routing problems to ensure the solution is a valid tour.",
+                "example": "# Wrong\nC3: u_i - u_j + |N| · x_{ij} <= |N| - 1 for all i, j in N, i ≠ j\n# Correct\nmodel.addConstrs((u[i] - u[j] + len(C) * x[i, j] <= len(C) - 1 for i in C for j in C if i != j and i != 1 and j != 1), name=\"subtour\")"
+            },
+            {
+                "category": "Domain",
+                "taxonomy": {
+                    "Domain Modeling": {
+                        "Routing": [
+                            "Subtour Elimination Constraints"
+                        ]
+                    }
+                },
+                "condition": "This insight applies when the problem description allows decision variables to form disconnected cycles that must be eliminated. For example, when the problem statement mentioned minimizing the travel cost for a delivery truck visiting each warehouse exactly once, it implies the need to avoid subtours. This insight applies when the problem involves planning a route that requires visiting each node exactly once and returning to the starting node, which implies the need to eliminate subtours to ensure a feasible solution. For example, when the problem statement includes minimizing the travel cost for a salesperson visiting each city exactly once and returning to the starting city, it indicates the necessity of using subtour elimination constraints to avoid disconnected cycles. This insight does NOT apply when the problem involves simple pathfinding without the need to revisit nodes or when the problem explicitly allows multiple visits to nodes, such as in pickup and delivery tasks.",
+                "explanation": "When the problem involves planning routes that must visit each node exactly once without creating disconnected cycles, the best practice is to use subtour elimination constraints, such as the MTZ formulation. A common mistake is to incorrectly apply these constraints, which happens because their proper formulation and application can be complex. More generally, this reflects that subtour elimination is critical in routing problems to ensure feasible and optimal solutions.",
+                "example": "# Wrong: u_i - u_j + |N| x_{ij} <= |N| - 1, where constraints are not properly applied to the starting node.\n# Correct: u[i] - u[j] + len(N) * x[i, j] <= len(N) - 1 for i != 'A' and j != 'A'."
+            },
+            {
+                "category": "Domain",
+                "taxonomy": {
+                    "Domain Modeling": {
+                        "Routing": [
+                            "Flow Conservation"
+                        ]
+                    }
+                },
+                "condition": "This insight applies when the problem description requires vehicles or agents to have balanced entry and exit at each visited node. For example, when the problem statement mentioned each city must be entered and left exactly once, it is vital to ensure the constraints reflect this exactly.",
+                "explanation": "When the problem involves routing with balanced entry and exit, the best practice is to ensure flow conservation constraints are applied at every node with the correct relational operators. A common mistake is overlooking these constraints or using inequalities instead of equalities, which happens because the natural requirement of entering and exiting nodes is not explicitly enforced. More generally, this reflects that routing problems require explicit flow conservation and accurate relational operators to ensure feasible tours.",
+                "example": "# Wrong: Use inequality instead of equality\nmodel.addConstrs((gp.quicksum(x[i, j] for j in cities if i != j) <= 1 for i in cities))\n\n# Correct: Ensuring flow conservation\nfor i in cities:\n    model.addConstr(gp.quicksum(x[i, j] for j in cities if j != i) == 1, name=f\"DepartOnce_{i}\")\nfor j in cities:\n    model.addConstr(gp.quicksum(x[i, j] for i in cities if i != j) == 1, name=f\"EnterOnce_{j}\")"
+            },
+            {
+                "category": "Domain",
+                "taxonomy": {
+                    "Domain Modeling": {
+                        "Routing": [
+                            "Flow Conservation"
+                        ]
+                    }
+                },
+                "condition": "This insight applies when the problem description requires feasible vehicle tours with balanced entry and exit at each visited node. For example, when the problem statement mentioned the need for a delivery truck to visit each warehouse exactly once and return to the starting warehouse, flow conservation constraints ensure each warehouse is entered and exited exactly once.",
+                "explanation": "When the problem involves routing a vehicle through a set of nodes, the best practice is to enforce flow conservation constraints at each node. A common mistake is to misapply these constraints, causing infeasibility or suboptimal routing, which happens because each node must be visited exactly once with balanced entry and exit. More generally, this reflects that flow conservation is essential in routing problems to maintain feasible tours.",
+                "example": "# Wrong: sum(x[i][j] for j in N if j != i) != 1.\n# Correct: sum(x[i][j] for j in N if j != i) == 1 for all i in N."
+            },
+            {
+                "category": "Code",
+                "taxonomy": {
+                    "Code Implementation": {
+                        "Solver & API Syntax": [
+                            "Quicksum vs. sum Syntax"
+                        ]
+                    }
+                },
+                "condition": "This insight applies when the mathematical model contains linear expressions aggregated over large index sets that should be constructed using solver-native summation operators. For example, when the formulation included summing flows using gp.quicksum for capacity constraints.",
+                "explanation": "When the problem involves constructing linear expressions over large sets. The best practice is to use solver-native functions like gp.quicksum for efficient computation. A common mistake is using Python's built-in sum function, which happens because the programmer might not be aware of solver-specific optimizations. More generally, this reflects that using appropriate solver-native functions can significantly enhance computational efficiency.",
+                "example": "# Wrong: model.addConstrs((sum(x[i, j] for i, j, cap in C) <= cap for i, j, cap in C), 'capacity')\n# Correct: model.addConstrs((gp.quicksum(x[i, j] for i, j, cap in C) <= cap for i, j, cap in C), 'capacity')"
+            }
+        ],
+        "formulation": "## Parameters:\nN = {1, 2, 3, 4, 5}  # Set of cities\nc[i][j] = travel cost from city i to city j\nc[1][2] = 73, c[1][3] = 39, c[1][4] = 79, c[1][5] = 38\nc[2][1] = 73, c[2][3] = 30, c[2][4] = 46, c[2][5] = 29\nc[3][1] = 39, c[3][2] = 30, c[3][4] = 88, c[3][5] = 57\nc[4][1] = 79, c[4][2] = 46, c[4][3] = 88, c[4][5] = 59\nc[5][1] = 38, c[5][2] = 29, c[5][3] = 57, c[5][4] = 59\n\n## Variables: \nx[i][j] ∈ {0, 1}  # Decision variable: 1 if the route from city i to city j is taken, 0 otherwise\n\n## Objective:\nMinimize Z = ∑(i ∈ N) ∑(j ∈ N, j ≠ i) c[i][j] * x[i][j]  # Total travel cost\n\n## Constraints: \nC1: ∑(j ∈ N, j ≠ i) x[i][j] = 1, ∀i ∈ N  # Each city must be departed from exactly once\nC2: ∑(i ∈ N, i ≠ j) x[i][j] = 1, ∀j ∈ N  # Each city must be entered exactly once\nC3: u[i] - u[j] + |N| * x[i][j] ≤ |N| - 1, ∀i, j ∈ N, i ≠ j, i ≠ 1, j ≠ 1  # Subtour elimination constraints (MTZ formulation)",
+        "code": "import gurobipy as gp\nfrom gurobipy import GRB\n\n# Create a new model\nmodel = gp.Model(\"OptimizationProblem\")\n\n# Parameters\nN = [1, 2, 3, 4, 5]  # Set of cities\nc = {\n    (1, 2): 73, (1, 3): 39, (1, 4): 79, (1, 5): 38,\n    (2, 1): 73, (2, 3): 30, (2, 4): 46, (2, 5): 29,\n    (3, 1): 39, (3, 2): 30, (3, 4): 88, (3, 5): 57,\n    (4, 1): 79, (4, 2): 46, (4, 3): 88, (4, 5): 59,\n    (5, 1): 38, (5, 2): 29, (5, 3): 57, (5, 4): 59\n}\n\n# Decision variables\nx = model.addVars(N, N, vtype=GRB.BINARY, name=\"x\")\n\n# Objective: Minimize total travel cost\nmodel.setObjective(gp.quicksum(c[i, j] * x[i, j] for i in N for j in N if i != j), GRB.MINIMIZE)  # Insight ID 95\n\n# Constraints\n# Each city must be departed from exactly once\nmodel.addConstrs((gp.quicksum(x[i, j] for j in N if j != i) == 1 for i in N), \"departure\")\n\n# Each city must be entered exactly once\nmodel.addConstrs((gp.quicksum(x[i, j] for i in N if i != j) == 1 for j in N), \"entry\")\n\n# Subtour elimination constraints (MTZ formulation)\nu = model.addVars(N, lb=0, ub=len(N)-1, vtype=GRB.CONTINUOUS, name=\"u\")\nmodel.addConstrs((u[i] - u[j] + len(N) * x[i, j] <= len(N) - 1 for i in N for j in N if i != j and i != 1 and j != 1), \"subtour\")\n\n# Optimize the model\nmodel.optimize()\n\nif model.Status == GRB.OPTIMAL:\n    print(\"Optimal value:\", model.ObjVal)\n    print(\"Optimal solution:\")\n    for var in model.getVars():\n        if var.X != 0:  # Only print non-zero variables\n            print(f\"  {var.VarName} = {var.X}\")\nelif model.Status == GRB.INFEASIBLE:\n    print(\"Model is infeasible.\")\nelif model.Status == GRB.UNBOUNDED:\n    print(\"Model is unbounded.\")\nelse:\n    print(\"Other status:\", model.Status)\n",
+        "status": "run_error",
+        "message": null,
+        "solution": {"variables": {"Travel from City 1 to City 3": "1.00", "Travel from City 2 to City 4": "1.00", "Travel from City 3 to City 2": "1.00", "Travel from City 4 to City 5": "1.00", "Travel from City 5 to City 1": "1.00", "u[City 2]": "1.00", "u[City 4]": "2.00", "u[City 5]": "3.00"}, "objective": "212.00", "details": "The optimal travel cost for the salesperson to visit each city exactly once and return to the starting city is 212 units."}
+    }
+}

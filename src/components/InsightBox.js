@@ -67,7 +67,7 @@ function InsightBox({ insight }) {
             {insight.taxonomy}
           </div>
           <div className="insight-box-condition">
-            {insight.condition}
+            {insight.explanation}
           </div>
         </div>
       </div>

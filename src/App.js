@@ -4,19 +4,17 @@ import ProblemSelector from './components/ProblemSelector';
 import LibraryVisualization from './components/LibraryVisualization';
 import './App.css';
 
-const API_BASE_URL = 'http://localhost:8000';
-
 function App() {
   const [selectedProblem, setSelectedProblem] = useState(null);
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('chat'); // 'chat' or 'library'
 
-  // Fetch problems from API on mount
+  // Fetch problems from local JSON file on mount
   useEffect(() => {
     const fetchProblems = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/problems`);
+        const response = await fetch('/problems.json');
         const data = await response.json();
         setProblems(data);
       } catch (error) {
